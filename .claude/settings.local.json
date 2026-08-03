@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(swift build *)",
+      "Bash(swift run *)",
+      "Bash(./Scripts/build-app.sh)",
+      "Bash(cat /tmp/enru_debug.log)",
+      "Bash(pkill -x enru)",
+      "Bash(open /Users/alina/Desktop/enru/enru.app)",
+      "Bash(log show *)"
+    ]
+  }
+}
