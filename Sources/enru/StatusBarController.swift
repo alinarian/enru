@@ -9,10 +9,12 @@ final class StatusBarController {
     init(onToggle: @escaping () -> Void, onQuit: @escaping () -> Void) {
         self.onToggle = onToggle
         self.onQuit = onQuit
-        statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
+        // Variable length: the "AЯ" mark is wider than it is tall, so a square item clips it.
+        statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
 
         if let button = statusItem.button {
-            button.image = NSImage(systemSymbolName: "character.bubble", accessibilityDescription: "enru")
+            button.image = IconArtwork.menuBarIcon()
+            button.image?.accessibilityDescription = "enru"
             button.action = #selector(statusItemClicked)
             button.target = self
             button.sendAction(on: [.leftMouseUp, .rightMouseUp])
