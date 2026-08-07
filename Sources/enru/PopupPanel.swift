@@ -26,4 +26,26 @@ final class PopupPanel: NSPanel {
         hidesOnDeactivate = false
         animationBehavior = .utilityWindow
     }
+
+    /// The app has no main menu (it's a menu-bar accessory), so the standard editing
+    /// shortcuts have nothing to match against and never reach the field editor.
+    /// Dispatch them down the responder chain by hand.
+    private static let editingActions: [String: Selector] = [
+        "c": #selector(NSText.copy(_:)),
+        "v": #selector(NSText.paste(_:)),
+        "x": #selector(NSText.cut(_:)),
+        "a": #selector(NSText.selectAll(_:))
+    ]
+
+    override func performKeyEquivalent(with event: NSEvent) -> Bool {
+        let flags = event.modifierFlags.intersection(.deviceIndependentFlagsMask)
+            .subtracting(.capsLock)
+        if flags == .command,
+           let key = event.charactersIgnoringModifiers?.lowercased(),
+           let action = PopupPanel.editingActions[key],
+           NSApp.sendAction(action, to: nil, from: self) {
+            return true
+        }
+        return super.performKeyEquivalent(with: event)
+    }
 }
