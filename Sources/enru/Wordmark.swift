@@ -1,7 +1,7 @@
 import AppKit
 
-/// The enru wordmark, exported from Figma as a flat vector path.
-/// Source of truth for both the app icon and the menu-bar item.
+/// The enru wordmark, exported from Figma as a flat vector path. Source of truth
+/// for the app icon.
 ///
 /// Design: https://www.figma.com/design/swnp51hKWtDDsm1ZlGWgqq/Untitled?node-id=1-3799
 /// The export is kept alongside this file as `Resources/Icon.svg`; to update the mark,
@@ -54,8 +54,4 @@ enum Wordmark {
         var flip = CGAffineTransform(scaleX: 1, y: -1).translatedBy(x: 0, y: -viewBox.height)
         return parsed.copy(using: &flip) ?? parsed
     }()
-
-    /// Tight bounds of the drawn glyphs, ignoring the empty margin around them in the
-    /// viewBox. Used to size the menu-bar item, where the margin would waste bar width.
-    static let inkBounds: CGRect = path.boundingBoxOfPath
 }

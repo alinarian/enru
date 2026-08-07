@@ -20,9 +20,9 @@ Then launch it like any other app. To start it automatically, add `enru.app` und
 
 For development, `swift run enru` launches it from the terminal (Ctrl+C to quit).
 
-The app icon and the menu-bar mark are both drawn from one vector source: the wordmark exported
-to `Resources/Icon.svg`, embedded as path data in `Sources/enru/Wordmark.swift`. `Resources/enru.icns`
-is committed; re-run `./Scripts/make-icon.sh` after changing the artwork.
+The app icon is drawn from the wordmark exported to `Resources/Icon.svg`, embedded as path data in
+`Sources/enru/Wordmark.swift`. `Resources/enru.icns` is committed; re-run `./Scripts/make-icon.sh`
+after changing the artwork.
 
 ## Using it
 

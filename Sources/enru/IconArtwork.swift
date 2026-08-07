@@ -1,11 +1,9 @@
 import AppKit
 
-/// Renders the enru wordmark (see `Wordmark`) for the two places it appears: the app
-/// icon in Finder and the Dock-less menu-bar item. Drawn in code from vector data so
-/// every size comes from one definition and stays crisp.
+/// Renders the enru wordmark (see `Wordmark`) as the app icon shown in Finder.
+/// Drawn in code from vector data so every iconset size stays crisp.
+/// The menu-bar item uses an SF Symbol instead — see `StatusBarController`.
 enum IconArtwork {
-
-    // MARK: - App icon
 
     /// Draws the full-color icon to fill `rect` in the current graphics context.
     /// Laid out on Apple's 1024pt icon grid (an 824pt tile centered in the canvas),
@@ -71,40 +69,5 @@ enum IconArtwork {
         NSGraphicsContext.current = previous
 
         return rep.representation(using: .png, properties: [:])
-    }
-
-    // MARK: - Menu bar
-
-    /// Monochrome menu-bar version. The drawing handler re-runs per display, so the
-    /// wordmark stays vector-crisp on Retina, and the template flag lets AppKit tint it
-    /// for the current menu-bar appearance (light, dark, and while highlighted).
-    ///
-    /// Sized from the wordmark's ink bounds rather than its 36pt artboard: most of that
-    /// artboard is margin, and honoring it would shrink the lettering to a few points
-    /// tall. The image comes out wider than it is tall, so the status item uses
-    /// `variableLength` to match.
-    static func menuBarIcon(barHeight: CGFloat = 18, capHeight: CGFloat = 8.5) -> NSImage {
-        let ink = Wordmark.inkBounds
-        let fit = capHeight / ink.height
-        let width = ceil(ink.width * fit)
-
-        let image = NSImage(size: NSSize(width: width, height: barHeight), flipped: false) { rect in
-            guard let context = NSGraphicsContext.current?.cgContext else { return false }
-            context.saveGState()
-            // Move the ink's own origin to the middle of the bar, then scale to fit.
-            context.translateBy(
-                x: rect.midX - ink.width * fit / 2,
-                y: rect.midY - ink.height * fit / 2
-            )
-            context.scaleBy(x: fit, y: fit)
-            context.translateBy(x: -ink.minX, y: -ink.minY)
-            context.addPath(Wordmark.path)
-            NSColor.black.setFill()
-            context.fillPath()
-            context.restoreGState()
-            return true
-        }
-        image.isTemplate = true
-        return image
     }
 }
