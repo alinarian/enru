@@ -3,6 +3,10 @@ import AppKit
 /// A borderless, floating, non-activating panel that can still become key
 /// (so the text field inside it can receive keystrokes immediately).
 final class PopupPanel: NSPanel {
+    /// Small enough to stay unobtrusive, large enough for the language bar, the input
+    /// field and a line or two of translation.
+    static let minimumSize = NSSize(width: 280, height: 150)
+
     override var canBecomeKey: Bool { true }
     override var canBecomeMain: Bool { false }
 
@@ -20,7 +24,7 @@ final class PopupPanel: NSPanel {
         backgroundColor = .clear
         hasShadow = true
         isMovableByWindowBackground = true
-        minSize = NSSize(width: 260, height: 120)
+        minSize = PopupPanel.minimumSize
         titleVisibility = .hidden
         titlebarAppearsTransparent = true
         hidesOnDeactivate = false

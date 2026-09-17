@@ -6,16 +6,18 @@ struct ContentView: View {
 
     @FocusState private var inputFocused: Bool
 
-    // Each configuration is created once and never mutated, so `.translationTask` starts
-    // exactly one session per direction and keeps it alive for the life of the popup.
-    // Recreating a configuration per keystroke is what makes translations silently stop:
-    // two configurations for the same language pair compare equal, so SwiftUI sees no
-    // change and never re-runs the task.
-    @State private var russianToEnglish: TranslationSession.Configuration?
-    @State private var englishToRussian: TranslationSession.Configuration?
+    // One configuration per direction, rebuilt only when the language pair changes, so
+    // `.translationTask` starts exactly one session per direction and keeps it alive
+    // until the languages change. Recreating a configuration per keystroke is what makes
+    // translations silently stop: two configurations for the same language pair compare
+    // equal, so SwiftUI sees no change and never re-runs the task.
+    @State private var forward: TranslationSession.Configuration?
+    @State private var reverse: TranslationSession.Configuration?
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
+            languageBar
+
             TextField("type…", text: $appState.inputText)
                 .textFieldStyle(.plain)
                 .font(.system(size: 15))
@@ -59,26 +61,86 @@ struct ContentView: View {
         .onChange(of: appState.focusToken) { _, _ in
             inputFocused = true
         }
+        .onChange(of: appState.languagePair) { _, pair in
+            syncConfigurations(with: pair)
+            inputFocused = true
+        }
         .onAppear {
             inputFocused = true
-            if russianToEnglish == nil {
-                russianToEnglish = .init(
-                    source: Locale.Language(identifier: "ru"),
-                    target: Locale.Language(identifier: "en")
+            syncConfigurations(with: appState.languagePair)
+        }
+        .translationTask(forward) { session in
+            await runSession(session, for: .forward)
+        }
+        .translationTask(reverse) { session in
+            await runSession(session, for: .reverse)
+        }
+    }
+
+    // MARK: - Language selection
+
+    private var languageBar: some View {
+        HStack(spacing: 2) {
+            languagePicker(
+                label: "Input language",
+                selection: Binding(
+                    get: { appState.languagePair.input },
+                    set: { appState.setInputLanguage($0) }
                 )
+            )
+
+            Button {
+                appState.swapLanguages()
+            } label: {
+                Image(systemName: "arrow.left.arrow.right")
             }
-            if englishToRussian == nil {
-                englishToRussian = .init(
-                    source: Locale.Language(identifier: "en"),
-                    target: Locale.Language(identifier: "ru")
+            .buttonStyle(.borderless)
+            .help("Swap languages")
+
+            languagePicker(
+                label: "Output language",
+                selection: Binding(
+                    get: { appState.languagePair.output },
+                    set: { appState.setOutputLanguage($0) }
                 )
+            )
+
+            Spacer(minLength: 0)
+        }
+        .controlSize(.small)
+        .foregroundStyle(.secondary)
+    }
+
+    private func languagePicker(label: String, selection: Binding<Locale.Language>) -> some View {
+        Picker(label, selection: selection) {
+            ForEach(languageOptions(including: selection.wrappedValue), id: \.self) { language in
+                Text(AppState.displayName(for: language)).tag(language)
             }
         }
-        .translationTask(russianToEnglish) { session in
-            await runSession(session, for: .russianToEnglish)
+        .pickerStyle(.menu)
+        .labelsHidden()
+        .fixedSize()
+        .help(label)
+    }
+
+    /// The framework's supported languages, with the current selection prepended if it
+    /// isn't among them (before the list has loaded, or for a stored language that is no
+    /// longer offered) so the picker always has a valid selection to show.
+    private func languageOptions(including selection: Locale.Language) -> [Locale.Language] {
+        let languages = appState.availableLanguages
+        return languages.contains(selection) ? languages : [selection] + languages
+    }
+
+    // MARK: - Sessions
+
+    /// Points both configurations at `pair`, touching only those whose languages differ:
+    /// every assignment restarts that direction's session.
+    private func syncConfigurations(with pair: LanguagePair) {
+        if forward?.source != pair.input || forward?.target != pair.output {
+            forward = .init(source: pair.input, target: pair.output)
         }
-        .translationTask(englishToRussian) { session in
-            await runSession(session, for: .englishToRussian)
+        if reverse?.source != pair.output || reverse?.target != pair.input {
+            reverse = .init(source: pair.output, target: pair.input)
         }
     }
 
@@ -111,8 +173,8 @@ struct ContentView: View {
 
     private func invalidateConfiguration(for direction: TranslationDirection) {
         switch direction {
-        case .russianToEnglish: russianToEnglish?.invalidate()
-        case .englishToRussian: englishToRussian?.invalidate()
+        case .forward: forward?.invalidate()
+        case .reverse: reverse?.invalidate()
         }
     }
 }

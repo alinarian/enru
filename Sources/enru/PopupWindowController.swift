@@ -5,7 +5,7 @@ import SwiftUI
 /// click-outside dismiss, Escape-to-close, and frame persistence.
 @MainActor
 final class PopupWindowController: NSObject, NSWindowDelegate {
-    private static let defaultSize = NSSize(width: 320, height: 140)
+    private static let defaultSize = NSSize(width: 320, height: 172)
     private static let frameDefaultsKey = "PopupPanel.frame"
     private static let topRightInset = NSSize(width: 16, height: 12)
 
@@ -62,8 +62,11 @@ final class PopupWindowController: NSObject, NSWindowDelegate {
 
     private static func loadSavedFrame() -> NSRect? {
         guard let raw = UserDefaults.standard.string(forKey: frameDefaultsKey) else { return nil }
-        let rect = NSRectFromString(raw)
+        var rect = NSRectFromString(raw)
         guard rect.width > 0, rect.height > 0 else { return nil }
+        // A frame saved by an older build may be smaller than today's minimum.
+        rect.size.width = max(rect.width, PopupPanel.minimumSize.width)
+        rect.size.height = max(rect.height, PopupPanel.minimumSize.height)
         return rect
     }
 
