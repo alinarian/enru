@@ -21,6 +21,21 @@ Then launch it like any other app. To start it automatically, add `enru.app` und
 
 For development, `swift run enru` launches it from the terminal (Ctrl+C to quit).
 
+### Updating
+
+Quit the running copy, pull, rebuild, and replace the installed bundle:
+
+```bash
+pkill -x enru
+git pull
+./Scripts/build-app.sh
+rm -rf /Applications/enru.app && mv enru.app /Applications/
+open /Applications/enru.app
+```
+
+`swift run` leaves debug builds under `.build/`; `rm -rf .build` clears them. Settings — the
+language pair and the popup's position and size — live in user defaults, so they survive an update.
+
 The app icon is drawn from the wordmark exported to `Resources/Icon.svg`, embedded as path data in
 `Sources/enru/Wordmark.swift`. `Resources/enru.icns` is committed; re-run `./Scripts/make-icon.sh`
 after changing the artwork.
@@ -30,10 +45,10 @@ after changing the artwork.
 - **⌘E** — toggle the popup, from anywhere, even when another app is focused.
 - Type in either of the two selected languages. Translation updates ~400ms after you stop typing;
   pasted text translates immediately.
-- The two language names above the text field are menus: the left one is the **input** language,
-  the right one the **output**, and the ⇄ between them swaps the pair. Picking the same language on
-  both sides also swaps. The choice persists and any text already typed is re-translated straight
-  away.
+- The two language names centred above the text field are menus: the left one is the **input**
+  language, the right one the **output**, and the ⇄ between them swaps the pair. Picking the same
+  language on both sides also swaps. The choice persists and any text already typed is re-translated
+  straight away.
 - **Esc** or a click outside — close it.
 - Drag the background to move the popup; drag any edge or corner to resize it, width included.
   Position and size persist.
@@ -42,10 +57,9 @@ after changing the artwork.
 ### Languages
 
 The language menus list everything Apple's on-device Translation framework supports on your Mac;
-the current choice is checked.
-The input language is the one you normally type; text recognised as the output language is
-translated back into the input language instead, so a pair works in both directions without
-touching the menus.
+the current choice is checked. The input language is the one you normally type; text recognised as
+the output language is translated back into the input language instead, so a pair works in both
+directions without touching the menus. English → Russian is the default.
 
 ### First-time language download
 
@@ -62,7 +76,13 @@ dismissal uses a global mouse monitor — if that doesn't work, enable enru unde
 ## How it works
 
 The popup is a borderless `.nonactivatingPanel` at floating level, so it appears over other apps
-and across full-screen Spaces without stealing focus, while still accepting keystrokes.
+and across full-screen Spaces without stealing focus, while still accepting keystrokes. A borderless
+window's built-in resize zone is a few invisible points wide, so `PopupPanel` handles edge and corner
+drags itself with an 8pt margin, tracks the drag in screen coordinates (dragging the left or bottom
+edge moves the window's origin), and shows the matching resize cursor on hover.
+
+The language bar is two `Menu`s drawn without bezel or indicator, each centred in an equal, flexible
+half of the row, so the swap glyph stays on the panel's centre line whatever the names' lengths.
 
 Translation is the interesting part. `TranslationSession` can only be obtained from a SwiftUI
 `.translationTask`, and that modifier re-runs only when its configuration *value* changes — two
