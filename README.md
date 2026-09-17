@@ -1,7 +1,8 @@
 # enru
 
-A macOS menu-bar utility for English ↔ Russian translation. Press **⌘E** anywhere, type in either
-language, and get a live translation — the direction is auto-detected from the script you type in.
+A macOS menu-bar utility for quick translation between any two languages — English ↔ Russian out of
+the box. Press **⌘E** anywhere, type in either language, and get a live translation — the direction
+is auto-detected from what you type.
 
 Runs entirely **on-device** via Apple's Translation framework: no API key, no account, no network.
 Native Swift + SwiftUI, no Dock icon.
@@ -27,16 +28,29 @@ after changing the artwork.
 ## Using it
 
 - **⌘E** — toggle the popup, from anywhere, even when another app is focused.
-- Type in English or Russian. Translation updates ~400ms after you stop typing; pasted text
-  translates immediately.
+- Type in either of the two selected languages. Translation updates ~400ms after you stop typing;
+  pasted text translates immediately.
+- The two language names above the text field are menus: the left one is the **input** language,
+  the right one the **output**, and the ⇄ between them swaps the pair. Picking the same language on
+  both sides also swaps. The choice persists and any text already typed is re-translated straight
+  away.
 - **Esc** or a click outside — close it.
-- Drag the background to move the popup, drag an edge to resize. Position and size persist.
+- Drag the background to move the popup; drag any edge or corner to resize it, width included.
+  Position and size persist.
 - Left-click the menu bar icon to toggle; right-click for a menu.
+
+### Languages
+
+The language menus list everything Apple's on-device Translation framework supports on your Mac;
+the current choice is checked.
+The input language is the one you normally type; text recognised as the output language is
+translated back into the input language instead, so a pair works in both directions without
+touching the menus.
 
 ### First-time language download
 
 The first translation in each direction may need macOS to download a small language model. The
-popup shows "Preparing language model…" while that happens. If it stalls, add English and Russian
+popup shows "Preparing language model…" while that happens. If it stalls, add both languages
 under **System Settings → General → Language & Region → Translation Languages**.
 
 ### Permissions
@@ -55,14 +69,18 @@ Translation is the interesting part. `TranslationSession` can only be obtained f
 configurations for the same language pair compare equal. So rebuilding a configuration per
 keystroke does not reliably restart the task, and tearing down a session mid-`translate` can hang.
 
-Instead, `ContentView` holds one configuration per direction, created once and never mutated. Each
-gets a long-lived session running a loop that drains a job queue from `AppState`. Typing pushes
-jobs onto the queue (`bufferingNewest(1)`, so bursts collapse to the latest); results carry a
-monotonic job ID and are discarded if a newer job has since been dispatched. In-flight translations
-are never cancelled — dropping a stale result is free, whereas cancelling meant destroying the
-session. A session that errors invalidates its configuration to get a fresh one.
+Instead, `ContentView` holds one configuration per direction, rebuilt only when the language pair
+changes. Each gets a long-lived session running a loop that drains a job queue from `AppState`.
+Typing pushes jobs onto the queue (`bufferingNewest(1)`, so bursts collapse to the latest); results
+carry a monotonic job ID and are discarded if a newer job has since been dispatched. In-flight
+translations are never cancelled — dropping a stale result is free, whereas cancelling meant
+destroying the session. A session that errors invalidates its configuration to get a fresh one.
+Changing the language pair finishes both queues, orphans in-flight jobs, and parks the current text
+until the new sessions register, at which point it is dispatched again.
 
-Language detection counts Cyrillic vs. Latin code points; ties default to English.
+Language detection uses `NLLanguageRecognizer` constrained to the two selected languages, so it
+also works for pairs that share a script; when it has no opinion, the text is treated as the input
+language.
 
 The package targets Swift language mode 5 to avoid strict-concurrency friction with AppKit and
 Translation APIs that aren't fully `Sendable`-audited — a pragmatic choice, not a correctness one.
