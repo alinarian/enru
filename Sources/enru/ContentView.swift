@@ -81,13 +81,16 @@ struct ContentView: View {
 
     /// Two bare language names with a swap glyph between them. Each name is a menu, but
     /// drawn without a bezel or chevron so the row reads as a caption, not a toolbar.
+    /// The two halves share the width equally, so the swap glyph stays on the panel's
+    /// centre line however long either language name is.
     private var languageBar: some View {
-        HStack(spacing: 8) {
+        HStack(spacing: 0) {
             languageMenu(
                 title: "Input language",
                 selection: appState.languagePair.input,
                 select: { appState.setInputLanguage($0) }
             )
+            .frame(maxWidth: .infinity)
 
             Button {
                 appState.swapLanguages()
@@ -103,12 +106,10 @@ struct ContentView: View {
                 selection: appState.languagePair.output,
                 select: { appState.setOutputLanguage($0) }
             )
-
-            Spacer(minLength: 0)
+            .frame(maxWidth: .infinity)
         }
         .font(.system(size: 12, weight: .medium))
         .foregroundStyle(.secondary)
-        .padding(.horizontal, 4)
     }
 
     private func languageMenu(
