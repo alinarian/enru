@@ -1,8 +1,9 @@
 # enru
 
-A macOS menu-bar utility for quick translation between any two languages — English ↔ Russian out of
-the box. Press **⌘E** anywhere, type in either language, and get a live translation — the direction
-is auto-detected from what you type.
+A macOS menu-bar utility for quick translation between any two languages you choose — pick any
+pair that Apple's Translation framework supports and switch pairs at any time. Press **⌘E**
+anywhere, type in either language, and get a live translation — the direction is auto-detected from
+what you type.
 
 Runs entirely **on-device** via Apple's Translation framework: no API key, no account, no network.
 Native Swift + SwiftUI, no Dock icon.
@@ -59,7 +60,8 @@ after changing the artwork.
 The language menus list everything Apple's on-device Translation framework supports on your Mac;
 the current choice is checked. The input language is the one you normally type; text recognised as
 the output language is translated back into the input language instead, so a pair works in both
-directions without touching the menus. English → Russian is the default.
+directions without touching the menus. The pair is yours to choose; a fresh install starts with
+English → Russian only until you pick something else.
 
 ### First-time language download
 
