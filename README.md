@@ -30,16 +30,19 @@ after changing the artwork.
 - **⌘E** — toggle the popup, from anywhere, even when another app is focused.
 - Type in either of the two selected languages. Translation updates ~400ms after you stop typing;
   pasted text translates immediately.
-- The two menus above the text field choose the **input** and **output** languages; the ⇄ button
-  swaps them. Picking the same language on both sides also swaps. The choice persists and any text
-  already typed is re-translated straight away.
+- The two language names above the text field are menus: the left one is the **input** language,
+  the right one the **output**, and the ⇄ between them swaps the pair. Picking the same language on
+  both sides also swaps. The choice persists and any text already typed is re-translated straight
+  away.
 - **Esc** or a click outside — close it.
-- Drag the background to move the popup, drag an edge to resize. Position and size persist.
+- Drag the background to move the popup; drag any edge or corner to resize it, width included.
+  Position and size persist.
 - Left-click the menu bar icon to toggle; right-click for a menu.
 
 ### Languages
 
-The language menus list everything Apple's on-device Translation framework supports on your Mac.
+The language menus list everything Apple's on-device Translation framework supports on your Mac;
+the current choice is checked.
 The input language is the one you normally type; text recognised as the output language is
 translated back into the input language instead, so a pair works in both directions without
 touching the menus.

@@ -79,53 +79,67 @@ struct ContentView: View {
 
     // MARK: - Language selection
 
+    /// Two bare language names with a swap glyph between them. Each name is a menu, but
+    /// drawn without a bezel or chevron so the row reads as a caption, not a toolbar.
     private var languageBar: some View {
-        HStack(spacing: 2) {
-            languagePicker(
-                label: "Input language",
-                selection: Binding(
-                    get: { appState.languagePair.input },
-                    set: { appState.setInputLanguage($0) }
-                )
+        HStack(spacing: 8) {
+            languageMenu(
+                title: "Input language",
+                selection: appState.languagePair.input,
+                select: { appState.setInputLanguage($0) }
             )
 
             Button {
                 appState.swapLanguages()
             } label: {
                 Image(systemName: "arrow.left.arrow.right")
+                    .font(.system(size: 10, weight: .semibold))
             }
-            .buttonStyle(.borderless)
+            .buttonStyle(.plain)
             .help("Swap languages")
 
-            languagePicker(
-                label: "Output language",
-                selection: Binding(
-                    get: { appState.languagePair.output },
-                    set: { appState.setOutputLanguage($0) }
-                )
+            languageMenu(
+                title: "Output language",
+                selection: appState.languagePair.output,
+                select: { appState.setOutputLanguage($0) }
             )
 
             Spacer(minLength: 0)
         }
-        .controlSize(.small)
+        .font(.system(size: 12, weight: .medium))
         .foregroundStyle(.secondary)
+        .padding(.horizontal, 4)
     }
 
-    private func languagePicker(label: String, selection: Binding<Locale.Language>) -> some View {
-        Picker(label, selection: selection) {
-            ForEach(languageOptions(including: selection.wrappedValue), id: \.self) { language in
-                Text(AppState.displayName(for: language)).tag(language)
+    private func languageMenu(
+        title: String,
+        selection: Locale.Language,
+        select: @escaping (Locale.Language) -> Void
+    ) -> some View {
+        Menu {
+            ForEach(languageOptions(including: selection), id: \.self) { language in
+                // A Toggle inside a Menu renders as a menu item with a checkmark.
+                Toggle(
+                    AppState.displayName(for: language),
+                    isOn: Binding(
+                        get: { language == selection },
+                        set: { if $0 { select(language) } }
+                    )
+                )
             }
+        } label: {
+            Text(AppState.displayName(for: selection))
         }
-        .pickerStyle(.menu)
-        .labelsHidden()
+        .menuStyle(.button)
+        .buttonStyle(.plain)
+        .menuIndicator(.hidden)
         .fixedSize()
-        .help(label)
+        .help(title)
     }
 
     /// The framework's supported languages, with the current selection prepended if it
     /// isn't among them (before the list has loaded, or for a stored language that is no
-    /// longer offered) so the picker always has a valid selection to show.
+    /// longer offered) so the menu always shows the selection as checked.
     private func languageOptions(including selection: Locale.Language) -> [Locale.Language] {
         let languages = appState.availableLanguages
         return languages.contains(selection) ? languages : [selection] + languages
